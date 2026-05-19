@@ -1,0 +1,47 @@
+name: terraform-security
+
+on:
+  pull_request:
+    paths:
+      - "**.tf"
+      - "**.tfvars"
+      - ".github/workflows/terraform-security.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: terraform-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          soft_fail: false
+
+      - name: Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          quiet: true
+
+      - name: Trivy IaC scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - name: Slack/Teams notification placeholder
+        if: always()
+        run: echo "Integrate Slack/Teams notification here"

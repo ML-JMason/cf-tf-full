@@ -1,0 +1,38 @@
+name: terraform-fmt
+
+on:
+  pull_request:
+    paths:
+      - "**.tf"
+      - "**.tfvars"
+      - ".github/workflows/terraform-fmt.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: terraform-fmt-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive -diff
+
+      - name: Slack/Teams notification placeholder
+        if: always()
+        run: echo "Integrate Slack/Teams notification here"

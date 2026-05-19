@@ -1,0 +1,30 @@
+# Copy this file to domains/<your-domain>.tfvars and customize.
+
+domain     = "example.com"
+account_id = "00000000000000000000000000000000"
+
+dns_records = {
+  apex_a = {
+    name    = "@"
+    type    = "A"
+    value   = "203.0.113.10"
+    proxied = true
+  }
+}
+
+rulesets = [
+  {
+    name  = "managed-waf"
+    kind  = "zone"
+    phase = "http_request_firewall_managed"
+    rules = [
+      {
+        action     = "execute"
+        expression = "true"
+        action_parameters = {
+          id = "efb7b8c949ac4650a09736fc376e9aee"
+        }
+      }
+    ]
+  }
+]
