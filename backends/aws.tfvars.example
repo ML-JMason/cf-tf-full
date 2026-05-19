@@ -1,0 +1,7 @@
+# Uncomment and use these values if switching backend.tf to backend "s3" {}
+# bucket         = "my-terraform-state-bucket"
+# key            = "cloudflare/platform.tfstate"
+# region         = "us-east-1"
+# dynamodb_table = "terraform-locks"
+# encrypt        = true
+# role_arn       = "arn:aws:iam::123456789012:role/terraform-state-role"
