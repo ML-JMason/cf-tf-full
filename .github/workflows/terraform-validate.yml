@@ -31,7 +31,7 @@ jobs:
         uses: terraform-linters/setup-tflint@v4
 
       - name: Setup reviewdog
-        uses: reviewdog/action-setup@v1
+        uses: reviewdog/action-setup@v1.3.0
 
       - name: Terraform init (no backend)
         run: terraform init -backend=false

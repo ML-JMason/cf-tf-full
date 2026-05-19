@@ -31,7 +31,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v46.0.1
         with:
           files: domains/**/*.tfvars
 
@@ -68,7 +68,7 @@ jobs:
           terraform_version: 1.9.8
 
       - name: Setup reviewdog
-        uses: reviewdog/action-setup@v1
+        uses: reviewdog/action-setup@v1.3.0
 
       - name: Azure login (OIDC)
         uses: azure/login@v2

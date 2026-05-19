@@ -28,7 +28,7 @@ jobs:
           terraform_version: 1.9.8
 
       - name: Setup reviewdog
-        uses: reviewdog/action-setup@v1
+        uses: reviewdog/action-setup@v1.3.0
 
       - name: Terraform fmt check
         run: terraform fmt -check -recursive -diff
