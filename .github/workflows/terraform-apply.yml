@@ -10,6 +10,20 @@ on:
       - "backends/**"
       - ".github/workflows/terraform-apply.yml"
   workflow_dispatch:
+    inputs:
+      scope:
+        description: "Apply scope"
+        required: true
+        default: changed
+        type: choice
+        options:
+          - changed
+          - all
+          - single
+      domain:
+        description: "Domain name (without .tfvars), required when scope=single"
+        required: false
+        type: string
 
 permissions:
   id-token: write
@@ -22,35 +36,98 @@ concurrency:
 jobs:
   changed-domains:
     runs-on: ubuntu-latest
+    env:
+      TF_IN_AUTOMATION: "true"
+      CHECKPOINT_DISABLE: "1"
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
       has_changes: ${{ steps.matrix.outputs.has_changes }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
 
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v46.0.1
+      - name: Get changed domain tfvars
+        id: changed-domains
+        uses: tj-actions/changed-files@2f7c5bfce28377bc069a65ba478de0a74aa0ca32 # v46.0.1
         with:
           files: domains/**/*.tfvars
+
+      - name: Get changed shared Terraform files
+        id: changed-shared
+        uses: tj-actions/changed-files@2f7c5bfce28377bc069a65ba478de0a74aa0ca32 # v46.0.1
+        with:
+          files: |
+            **/*.tf
+            backends/**
+            .github/workflows/terraform-apply.yml
+          files_ignore: domains/**/*.tfvars
 
       - name: Build matrix
         id: matrix
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
+
+          mapfile -t all_domains < <(find domains -maxdepth 1 -type f -name '*.tfvars' -printf '%f\n' | sed 's/\.tfvars$//' | sort -u)
+          if [[ ${#all_domains[@]} -eq 0 ]]; then
             echo 'matrix={"domain":[]}' >> "$GITHUB_OUTPUT"
             echo 'has_changes=false' >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          mapfile -t domains < <(for f in ${{ steps.changed-files.outputs.all_changed_files }}; do basename "$f" .tfvars; done | sort -u)
-          json_domains=$(printf '%s\n' "${domains[@]}" | jq -R . | jq -s .)
-          echo "matrix={\"domain\":${json_domains}}" >> "$GITHUB_OUTPUT"
+          event_name="${{ github.event_name }}"
+          dispatch_scope="${{ github.event.inputs.scope || 'changed' }}"
+          dispatch_domain="${{ github.event.inputs.domain || '' }}"
+
+          selected_domains=()
+
+          if [[ "$event_name" == "workflow_dispatch" ]]; then
+            case "$dispatch_scope" in
+              all)
+                selected_domains=("${all_domains[@]}")
+                ;;
+              single)
+                if [[ -z "$dispatch_domain" ]]; then
+                  echo "scope=single requires workflow_dispatch input 'domain'" >&2
+                  exit 1
+                fi
+                if [[ ! -f "domains/${dispatch_domain}.tfvars" ]]; then
+                  echo "domains/${dispatch_domain}.tfvars does not exist" >&2
+                  exit 1
+                fi
+                selected_domains=("$dispatch_domain")
+                ;;
+              changed)
+                if [[ -n "${{ steps.changed-shared.outputs.all_changed_files }}" ]]; then
+                  selected_domains=("${all_domains[@]}")
+                elif [[ -n "${{ steps.changed-domains.outputs.all_changed_files }}" ]]; then
+                  mapfile -t selected_domains < <(for f in ${{ steps.changed-domains.outputs.all_changed_files }}; do basename "$f" .tfvars; done | sort -u)
+                fi
+                ;;
+              *)
+                echo "Unsupported scope: $dispatch_scope" >&2
+                exit 1
+                ;;
+            esac
+          else
+            if [[ -n "${{ steps.changed-shared.outputs.all_changed_files }}" ]]; then
+              selected_domains=("${all_domains[@]}")
+            elif [[ -n "${{ steps.changed-domains.outputs.all_changed_files }}" ]]; then
+              mapfile -t selected_domains < <(for f in ${{ steps.changed-domains.outputs.all_changed_files }}; do basename "$f" .tfvars; done | sort -u)
+            fi
+          fi
+
+          if [[ ${#selected_domains[@]} -eq 0 ]]; then
+            echo 'matrix={"domain":[]}' >> "$GITHUB_OUTPUT"
+            echo 'has_changes=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          json_domains=$(printf '%s\n' "${selected_domains[@]}" | jq -R . | jq -s -c .)
+          matrix_json=$(jq -cn --argjson domains "$json_domains" '{domain:$domains}')
+          echo "matrix=${matrix_json}" >> "$GITHUB_OUTPUT"
           echo 'has_changes=true' >> "$GITHUB_OUTPUT"
 
   apply:
@@ -58,20 +135,23 @@ jobs:
     if: needs.changed-domains.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     environment: production
+    env:
+      TF_IN_AUTOMATION: "true"
+      CHECKPOINT_DISABLE: "1"
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.changed-domains.outputs.matrix) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: 1.9.8
 
       - name: Azure login (OIDC)
-        uses: azure/login@v2
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -92,4 +172,4 @@ jobs:
     if: needs.changed-domains.outputs.has_changes == 'false'
     runs-on: ubuntu-latest
     steps:
-      - run: echo "No changed domain tfvars files detected."
+      - run: echo "No impacted domains detected for apply scope."

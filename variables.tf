@@ -21,6 +21,12 @@ variable "zone_type" {
   default     = "full"
 }
 
+variable "existing_zone_id" {
+  description = "Existing Cloudflare zone ID (used when zone_enabled is false)."
+  type        = string
+  default     = null
+}
+
 variable "zone_settings" {
   description = "Zone-level settings map."
   type        = map(any)
@@ -80,11 +86,13 @@ variable "access_applications" {
 variable "access_policies" {
   description = "Cloudflare Access policies keyed by name."
   type = map(object({
-    name     = string
-    decision = string
-    include  = optional(list(map(list(string))), [])
-    exclude  = optional(list(map(list(string))), [])
-    require  = optional(list(map(list(string))), [])
+    application_key = string
+    name            = string
+    decision        = string
+    precedence      = optional(number)
+    include         = optional(list(map(list(string))), [])
+    exclude         = optional(list(map(list(string))), [])
+    require         = optional(list(map(list(string))), [])
   }))
   default = {}
 }

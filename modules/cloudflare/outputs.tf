@@ -5,7 +5,7 @@ output "zone_id" {
 
 output "zone_name_servers" {
   description = "Zone nameservers assigned by Cloudflare."
-  value       = one(concat(cloudflare_zone.this[*].name_servers, [[]]))
+  value       = try(cloudflare_zone.this[0].name_servers, [])
 }
 
 output "dashboard_urls" {

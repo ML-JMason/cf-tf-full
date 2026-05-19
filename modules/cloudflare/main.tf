@@ -1,5 +1,5 @@
 locals {
-  effective_zone_id = one(concat(cloudflare_zone.this[*].id, [null]))
+  effective_zone_id = coalesce(try(cloudflare_zone.this[0].id, null), var.existing_zone_id)
 }
 
 resource "cloudflare_zone" "this" {
@@ -68,6 +68,12 @@ resource "cloudflare_zero_trust_access_application" "apps" {
   session_duration          = each.value.session_duration
   auto_redirect_to_identity = each.value.auto_redirect_to_identity
   allowed_idps              = each.value.allowed_idps
+  policies = [
+    for policy_key, policy in var.access_policies : {
+      id         = cloudflare_zero_trust_access_policy.policies[policy_key].id
+      precedence = try(policy.precedence, null)
+    } if policy.application_key == each.key
+  ]
 }
 
 resource "cloudflare_zero_trust_access_policy" "policies" {

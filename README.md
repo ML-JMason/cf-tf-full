@@ -66,6 +66,6 @@ Configure branch protection on `main` with:
 
 ## CI/CD Notes
 
-- `terraform-plan.yml`: PR plans only changed `domains/*.tfvars`
-- `terraform-apply.yml`: Push to `main`, environment-gated for manual approval
+- `terraform-plan.yml`: PR plans changed `domains/*.tfvars`, and plans all domains when shared Terraform/backend code changes
+- `terraform-apply.yml`: Push to `main`, environment-gated for manual approval, with `workflow_dispatch` scope controls (`changed`, `all`, `single`)
 - Slack/Teams notification steps are included as placeholders for enterprise chat integrations

@@ -7,6 +7,19 @@ variable "account_id" {
   description = "Cloudflare account ID used for account-scoped resources."
   type        = string
   default     = null
+
+  validation {
+    condition = var.account_id != null || (
+      !var.zone_enabled &&
+      var.existing_zone_id != null &&
+      length(var.worker_scripts) == 0 &&
+      length(var.r2_buckets) == 0 &&
+      length(var.d1_databases) == 0 &&
+      length(var.load_balancer_pools) == 0 &&
+      length(var.access_policies) == 0
+    )
+    error_message = "account_id is required when creating a zone or when using account-scoped resources (workers, R2, D1, load balancer pools, or access policies)."
+  }
 }
 
 variable "zone_enabled" {
@@ -19,6 +32,25 @@ variable "zone_type" {
   description = "Cloudflare zone type."
   type        = string
   default     = "full"
+}
+
+variable "existing_zone_id" {
+  description = "Existing Cloudflare zone ID. Use this when zone_enabled is false but zone-scoped resources should be managed."
+  type        = string
+  default     = null
+
+  validation {
+    condition = var.zone_enabled || var.existing_zone_id != null || (
+      length(var.zone_settings) == 0 &&
+      length(var.dns_records) == 0 &&
+      length(var.rulesets) == 0 &&
+      length(var.access_applications) == 0 &&
+      length(var.worker_routes) == 0 &&
+      length(var.load_balancers) == 0 &&
+      length(var.spectrum_applications) == 0
+    )
+    error_message = "Set existing_zone_id when zone_enabled is false and zone-scoped resources are configured."
+  }
 }
 
 variable "zone_settings" {
@@ -80,11 +112,13 @@ variable "access_applications" {
 variable "access_policies" {
   description = "Zero Trust Access policies keyed by logical name."
   type = map(object({
-    name     = string
-    decision = string
-    include  = optional(list(map(list(string))), [])
-    exclude  = optional(list(map(list(string))), [])
-    require  = optional(list(map(list(string))), [])
+    application_key = string
+    name            = string
+    decision        = string
+    precedence      = optional(number)
+    include         = optional(list(map(list(string))), [])
+    exclude         = optional(list(map(list(string))), [])
+    require         = optional(list(map(list(string))), [])
   }))
   default = {}
 }

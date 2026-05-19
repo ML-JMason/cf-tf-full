@@ -39,10 +39,11 @@ module "cloudflare" {
 |------|-------------|------|---------|
 | `domain` | Primary domain name for the Cloudflare zone | `string` | n/a |
 | `account_id` | Cloudflare account ID for account-level services | `string` | `null` |
+| `existing_zone_id` | Existing zone ID to manage zone-scoped resources without creating a zone | `string` | `null` |
 | `dns_records` | DNS records keyed by logical name | `map(object(...))` | `{}` |
 | `rulesets` | Rulesets for WAF, transform, cache, API shield, and bot/rate phases | `list(object(...))` | `[]` |
 | `access_applications` | Access apps keyed by logical name | `map(object(...))` | `{}` |
-| `access_policies` | Access policies keyed by logical name | `map(object(...))` | `{}` |
+| `access_policies` | Access policies keyed by logical name (`application_key` links each policy to an app key) | `map(object(...))` | `{}` |
 | `worker_scripts` | Worker scripts keyed by script name | `map(object(...))` | `{}` |
 | `worker_routes` | Worker routes keyed by route name | `map(object(...))` | `{}` |
 | `r2_buckets` | R2 buckets keyed by logical name | `map(object(...))` | `{}` |
