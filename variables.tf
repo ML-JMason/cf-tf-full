@@ -21,12 +21,6 @@ variable "zone_type" {
   default     = "full"
 }
 
-variable "zone_plan" {
-  description = "Cloudflare zone plan."
-  type        = string
-  default     = "free"
-}
-
 variable "zone_settings" {
   description = "Zone-level settings map."
   type        = map(any)
@@ -57,10 +51,10 @@ variable "rulesets" {
     phase       = string
     description = optional(string)
     rules = optional(list(object({
-      action      = string
-      expression  = string
-      description = optional(string)
-      enabled     = optional(bool, true)
+      action            = string
+      expression        = string
+      description       = optional(string)
+      enabled           = optional(bool, true)
       action_parameters = optional(map(any), {})
       logging = optional(object({
         enabled = optional(bool, false)
@@ -73,12 +67,12 @@ variable "rulesets" {
 variable "access_applications" {
   description = "Cloudflare Access applications keyed by name."
   type = map(object({
-    name                       = string
-    domain                     = string
-    type                       = optional(string, "self_hosted")
-    session_duration           = optional(string, "24h")
-    auto_redirect_to_identity  = optional(bool, false)
-    allowed_idps               = optional(list(string), [])
+    name                      = string
+    domain                    = string
+    type                      = optional(string, "self_hosted")
+    session_duration          = optional(string, "24h")
+    auto_redirect_to_identity = optional(bool, false)
+    allowed_idps              = optional(list(string), [])
   }))
   default = {}
 }
@@ -86,13 +80,11 @@ variable "access_applications" {
 variable "access_policies" {
   description = "Cloudflare Access policies keyed by name."
   type = map(object({
-    application_key = string
-    name            = string
-    precedence      = number
-    decision        = string
-    include         = optional(list(map(list(string))), [])
-    exclude         = optional(list(map(list(string))), [])
-    require         = optional(list(map(list(string))), [])
+    name     = string
+    decision = string
+    include  = optional(list(map(list(string))), [])
+    exclude  = optional(list(map(list(string))), [])
+    require  = optional(list(map(list(string))), [])
   }))
   default = {}
 }
@@ -100,8 +92,8 @@ variable "access_policies" {
 variable "worker_scripts" {
   description = "Cloudflare Worker scripts keyed by script name."
   type = map(object({
-    content    = string
-    module     = optional(bool, false)
+    content            = string
+    module             = optional(bool, false)
     compatibility_date = optional(string)
   }))
   default = {}
@@ -152,12 +144,12 @@ variable "load_balancer_pools" {
 variable "load_balancers" {
   description = "Load balancers keyed by logical name."
   type = map(object({
-    name             = string
-    fallback_pool    = string
-    default_pools    = list(string)
-    proxied          = optional(bool, true)
-    steering_policy  = optional(string, "off")
-    ttl              = optional(number, 30)
+    name            = string
+    fallback_pool   = string
+    default_pools   = list(string)
+    proxied         = optional(bool, true)
+    steering_policy = optional(string, "off")
+    ttl             = optional(number, 30)
   }))
   default = {}
 }

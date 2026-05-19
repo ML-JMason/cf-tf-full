@@ -5,7 +5,6 @@ module "cloudflare" {
   account_id            = var.account_id
   zone_enabled          = var.zone_enabled
   zone_type             = var.zone_type
-  zone_plan             = var.zone_plan
   zone_settings         = var.zone_settings
   dns_records           = var.dns_records
   rulesets              = var.rulesets

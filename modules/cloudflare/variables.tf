@@ -21,12 +21,6 @@ variable "zone_type" {
   default     = "full"
 }
 
-variable "zone_plan" {
-  description = "Cloudflare zone plan."
-  type        = string
-  default     = "free"
-}
-
 variable "zone_settings" {
   description = "Zone settings map."
   type        = map(any)
@@ -57,10 +51,10 @@ variable "rulesets" {
     phase       = string
     description = optional(string)
     rules = optional(list(object({
-      action      = string
-      expression  = string
-      description = optional(string)
-      enabled     = optional(bool, true)
+      action            = string
+      expression        = string
+      description       = optional(string)
+      enabled           = optional(bool, true)
       action_parameters = optional(map(any), {})
       logging = optional(object({
         enabled = optional(bool, false)
@@ -86,13 +80,11 @@ variable "access_applications" {
 variable "access_policies" {
   description = "Zero Trust Access policies keyed by logical name."
   type = map(object({
-    application_key = string
-    name            = string
-    precedence      = number
-    decision        = string
-    include         = optional(list(map(list(string))), [])
-    exclude         = optional(list(map(list(string))), [])
-    require         = optional(list(map(list(string))), [])
+    name     = string
+    decision = string
+    include  = optional(list(map(list(string))), [])
+    exclude  = optional(list(map(list(string))), [])
+    require  = optional(list(map(list(string))), [])
   }))
   default = {}
 }

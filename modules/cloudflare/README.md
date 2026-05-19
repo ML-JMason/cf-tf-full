@@ -5,10 +5,10 @@ Reusable Terraform module for managing enterprise Cloudflare domains with one mo
 ## Features
 
 - Zone lifecycle and zone settings
-- DNS records (`cloudflare_record`)
+- DNS records (`cloudflare_dns_record`)
 - Rulesets for WAF/managed WAF, transform, cache, API shield, bot, rate limiting phases (`cloudflare_ruleset`)
-- Zero Trust Access applications and policies (`cloudflare_access_application`, `cloudflare_access_policy`)
-- Workers scripts and routes (`cloudflare_worker_script`, `cloudflare_worker_route`)
+- Zero Trust Access applications and policies (`cloudflare_zero_trust_access_application`, `cloudflare_zero_trust_access_policy`)
+- Workers scripts and routes (`cloudflare_workers_script`, `cloudflare_workers_route`)
 - Data services (`cloudflare_r2_bucket`, `cloudflare_d1_database`)
 - Traffic steering (`cloudflare_load_balancer_pool`, `cloudflare_load_balancer`)
 - Spectrum TCP/UDP publishing (`cloudflare_spectrum_application`)
