@@ -28,7 +28,7 @@ jobs:
           soft_fail: false
 
       - name: Checkov
-        uses: bridgecrewio/checkov-action@4048c972aae68d0b983a48bb3479aab2d877b898 # v12
+        uses: bridgecrewio/checkov-action@7b972723c44fb3d256283fac96fae5d7c1894bb7 # v12
         with:
           directory: .
           quiet: true
